@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">HLSDemo</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="mic_status">Mic Status</string>
+    <string name="toggle_camera">Toggle Camera</string>
+    <string name="toggle_mic">Toggle Mic</string>
+    <string name="toggle_screenshare">Toggle ScreenShare</string>
+    <string name="toggle_recording">Toggle Recording</string>
+    <string name="toggle_live">Toggle Live</string>
+    <string name="show_viewer">Show Viewer</string>
+    <string-array name="facingModes">
+        <item>Front</item>
+        <item>Back</item>
+    </string-array>
+    <string name="show_recording">Show Recording Indicator</string>
+    <string name="notificationTitle">VideoSDK RTC is sharing your screen</string>
+    <string name="notificationContent">meeting is running</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#202427"
+    android:orientation="vertical"
+    android:id="@+id/setting_main_layout"
+    android:paddingBottom="17sp"
+    android:paddingHorizontal="17sp">
+
+    <RelativeLayout
+        android:id="@+id/layout_setting_heading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20sp"
+        android:layout_marginBottom="24sp">
+
+        <TextView
+            android:id="@+id/setting_heading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center"
+            android:text="Audio &amp; Video Settings "
+            android:textColor="@color/white"
+            android:textFontWeight="600"
+            android:fontFamily="sans-serif-light"
+            android:textSize="18sp"
+            />
+
+        <ImageView
+            android:id="@+id/ic_close"
+            android:layout_width="18sp"
+            android:layout_height="18sp"
+            android:layout_marginTop="5sp"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/ic_end_call"
+            tools:ignore="ContentDescription" />
+
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Audio"
+        android:textColor="#9A9FA5"
+        android:textFontWeight="600"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:fontFamily="sans-serif-light"
+        />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:boxCornerRadiusBottomEnd="4dp"
+        app:boxCornerRadiusBottomStart="4dp"
+        app:boxCornerRadiusTopEnd="4dp"
+        app:boxCornerRadiusTopStart="4dp"
+        app:endIconTint="@color/white"
+        android:layout_marginTop="3sp"
+        style="@style/TextInputLayout_overlay">
+
+        <AutoCompleteTextView
+            android:id="@+id/micDevice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:elevation="0dp"
+            android:fadingEdge="none"
+            android:fontFamily="sans-serif-light"
+            android:inputType="none"
+            android:letterSpacing="0"
+            android:padding="15dp"
+            android:textColor="@color/white"
+            android:textFontWeight="500"
+            android:textSize="15sp"
+            />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Video"
+        android:textColor="#9A9FA5"
+        android:textFontWeight="600"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:fontFamily="sans-serif-light"
+        />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:boxCornerRadiusBottomEnd="4dp"
+        app:boxCornerRadiusBottomStart="4dp"
+        app:boxCornerRadiusTopEnd="4dp"
+        app:boxCornerRadiusTopStart="4dp"
+        app:endIconTint="@color/white"
+        android:layout_marginTop="3sp"
+        style="@style/TextInputLayout_overlay">
+
+        <AutoCompleteTextView
+            android:id="@+id/facingMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:elevation="0dp"
+            android:fadingEdge="none"
+            android:fontFamily="sans-serif-light"
+            android:inputType="none"
+            android:letterSpacing="0"
+            android:padding="15dp"
+            android:shadowColor="#202427"
+            android:textColor="@color/white"
+            android:textFontWeight="500"
+            android:textSize="15sp"
+            />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+</LinearLayout>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="25dp"
+    android:paddingBottom="25dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_gravity="center"
+        android:id="@+id/txtMessage1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:fontFamily="sans-serif-medium"
+        android:textFontWeight="500"
+        android:textSize="16sp"
+        />
+
+    <TextView
+        android:layout_gravity="center"
+        android:id="@+id/txtMessage2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:fontFamily="sans-serif-medium"
+        android:textFontWeight="500"
+        android:textSize="16sp"
+        />
+
+    <LinearLayout
+        android:layout_marginTop="24sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/declineBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:text="Decline"
+            android:textFontWeight="500"
+            android:fontFamily="sans-serif-light"
+            android:layout_marginEnd="14sp"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/md_grey_100"
+            app:cornerRadius="4sp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingHorizontal="12sp"
+            android:paddingVertical="7sp"
+            />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/acceptBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:text="Accept"
+            android:textFontWeight="500"
+            android:fontFamily="sans-serif-light"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/primaryColor"
+            app:cornerRadius="4sp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingHorizontal="12sp"
+            android:paddingVertical="7sp"
+            />
+
+
+
+    </LinearLayout>
+
+
+</LinearLayout>

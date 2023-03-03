@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/fragment_viewer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundColor"
+    android:keepScreenOn="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:id="@+id/waiting_layout"
+        android:gravity="center">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|center_vertical"
+            android:src="@drawable/ic_wait" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20sp"
+            android:fontFamily="sans-serif-light"
+            android:gravity="center"
+            android:text="Waiting for speaker \n to start the live streaming"
+            android:textFontWeight="700"
+            android:textSize="20sp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:id="@+id/stop_liveStream_layout"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_stop" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20sp"
+            android:fontFamily="sans-serif-light"
+            android:gravity="center"
+            android:text="Host has stopped the\n live streaming"
+            android:textFontWeight="700"
+            android:textSize="20sp" />
+
+    </LinearLayout>
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/material_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_margin="5dp"
+        app:contentInsetStart="0dp">
+
+        <ImageView
+            android:id="@+id/btnViewerLeave"
+            android:layout_width="18sp"
+            android:layout_height="18sp"
+            android:layout_marginStart="10sp"
+            android:src="@drawable/ic_end_call"
+            app:tint="@color/white" />
+
+        <RelativeLayout
+            android:visibility="gone"
+            android:id="@+id/live_actions_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/hlsIndicator"
+                android:layout_width="50dp"
+                android:layout_height="45sp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="8sp"
+                android:layout_marginEnd="10sp"
+                android:backgroundTint="@color/md_red_400"
+                android:contentDescription="@string/toggle_live"
+                android:fontFamily="sans-serif-medium"
+                android:padding="5dp"
+                android:text="Live"
+                android:textAllCaps="false"
+                android:textFontWeight="700"
+                android:textSize="15sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/viewerCount"
+                android:layout_width="55sp"
+                android:layout_height="45sp"
+                android:layout_marginStart="8sp"
+                android:layout_toStartOf="@+id/hlsIndicator"
+                android:alpha="0.75"
+                android:backgroundTint="@color/semiTransperentColor"
+                android:contentDescription="@string/show_viewer"
+                android:padding="0dp"
+                android:text="0"
+                android:textColor="@color/white"
+                android:textFontWeight="600"
+                android:textSize="15sp"
+                app:icon="@drawable/ic_viewer_count"
+                app:iconGravity="textStart"
+                app:iconTint="@color/white" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnQuality"
+                android:layout_width="65sp"
+                android:layout_height="45sp"
+                android:layout_marginStart="8sp"
+                android:layout_toStartOf="@+id/viewerCount"
+                android:alpha="0.75"
+                android:backgroundTint="@color/semiTransperentColor"
+                android:letterSpacing="0"
+                android:padding="0dp"
+                android:text="Auto"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textFontWeight="600"
+                android:textSize="15sp"
+                app:icon="@drawable/ic_down"
+                app:iconGravity="textEnd"
+                app:iconTint="@color/white" />
+
+        </RelativeLayout>
+
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <com.google.android.exoplayer2.ui.StyledPlayerView
+        android:id="@+id/player_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:animation_enabled="false"
+        app:controller_layout_id="@layout/exo_playback_control_view"
+        app:resize_mode="fixed_width"
+        app:show_buffering="when_playing"
+        app:show_fastforward_button="false"
+        app:show_next_button="false"
+        app:show_previous_button="false"
+        app:show_rewind_button="false"
+        app:show_subtitle_button="false"
+        app:use_artwork="true"
+        app:use_controller="true" />
+
+    <FrameLayout
+        android:id="@+id/viewer_emoji_holder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/reactionsLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/viewerControllers"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/loveEyes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/love_eyes_emoji" />
+
+        <ImageView
+            android:id="@+id/laughing"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="5sp"
+            android:src="@drawable/laughing" />
+
+        <ImageView
+            android:id="@+id/thumbs_up"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/thumbs_up" />
+
+        <ImageView
+            android:id="@+id/celebration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="5sp"
+            android:src="@drawable/celebration" />
+
+        <ImageView
+            android:id="@+id/clap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="5sp"
+            android:src="@drawable/clap" />
+
+        <ImageView
+            android:id="@+id/heart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/heart" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/viewerControllers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginBottom="55dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReactions"
+            style="@style/iconOnly"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:alpha="0.75"
+            android:layout_marginVertical="15dp"
+            android:backgroundTint="@color/semiTransperentColor"
+            android:enabled="true"
+            app:icon="@drawable/ic_emoji"
+            app:iconGravity="textStart"
+            app:iconSize="25sp"
+            app:iconTint="@color/white"
+            app:shapeAppearanceOverlay="@style/fab_square"
+            app:strokeWidth="0dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddToCart"
+            style="@style/iconOnly"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:alpha="0.75"
+            android:backgroundTint="@color/semiTransperentColor"
+            android:enabled="true"
+            app:icon="@drawable/ic_cart"
+            app:iconGravity="textStart"
+            app:iconSize="25sp"
+            app:iconTint="@color/white"
+            app:shapeAppearanceOverlay="@style/fab_square"
+            app:strokeWidth="0dp" />
+
+    </LinearLayout>
+
+
+</RelativeLayout>

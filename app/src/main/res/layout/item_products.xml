@@ -1,0 +1,72 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/list_style"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <ImageView
+        android:id="@+id/productImage"
+        android:layout_width="60sp"
+        android:layout_height="60sp"
+        android:background="@drawable/square_layout" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingStart="10dp">
+
+        <TextView
+            android:id="@+id/productName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-light"
+            android:paddingVertical="5dp"
+            android:textColor="@color/white"
+            android:textFontWeight="700"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/productPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-light"
+            android:textColor="@color/md_grey_10A"
+            android:textFontWeight="700"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBuy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/primaryColor"
+            android:letterSpacing="0"
+            android:text="Buy"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textFontWeight="600"
+            android:fontFamily="sans-serif-light"
+            android:textSize="14sp"
+            app:cornerRadius="4sp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingVertical="6sp"
+            android:paddingHorizontal="12sp"/>
+
+    </LinearLayout>
+</LinearLayout>

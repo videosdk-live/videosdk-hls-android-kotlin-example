@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/stageLayout"
+    android:orientation="horizontal">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/material_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:contentInsetStart="0dp"
+        app:titleTextColor="@color/white"
+        android:layout_margin="5dp">
+
+        <ImageView
+            android:id="@+id/btnSpeakerLeave"
+            android:layout_width="18sp"
+            android:layout_height="18sp"
+            android:layout_marginStart="10sp"
+            android:src="@drawable/ic_end_call"
+            app:tint="@color/white" />
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHls"
+                android:layout_width="70dp"
+                android:layout_height="50dp"
+                android:backgroundTint="@color/md_red_400"
+                android:contentDescription="@string/toggle_live"
+                android:textSize="13dp"
+                android:textFontWeight="600"
+                android:text="Go live"
+                android:textAllCaps="false"
+                android:padding="5dp"
+                android:layout_marginEnd="10sp"
+                android:layout_marginStart="8sp"
+                android:layout_alignParentEnd="true"
+                />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/viewerCount"
+                android:layout_width="65dp"
+                android:layout_height="50dp"
+                android:alpha="0.75"
+                android:backgroundTint="@color/semiTransperentColor"
+                android:contentDescription="@string/show_viewer"
+                android:textSize="17dp"
+                android:text="0"
+                android:fontFamily="sans-serif-medium"
+                android:textFontWeight="600"
+                android:padding="0dp"
+                android:textColor="@color/white"
+                app:iconTint="@color/white"
+                app:icon="@drawable/ic_viewer_count"
+                app:iconGravity="textStart"
+                android:layout_marginStart="8sp"
+                android:layout_toStartOf="@+id/btnHls"
+                app:iconSize="18sp"
+                android:visibility="gone"
+                />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/recordingIndicator"
+                android:layout_width="70dp"
+                android:layout_height="50dp"
+                android:alpha="0.75"
+                android:backgroundTint="@color/semiTransperentColor"
+                android:contentDescription="@string/show_recording"
+                android:textSize="15dp"
+                android:text="REC"
+                android:textFontWeight="600"
+                android:padding="0dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/white"
+                app:iconTint="@color/white"
+                app:icon="@drawable/ic_recording"
+                app:iconGravity="textStart"
+                android:layout_toLeftOf="@+id/viewerCount"
+                android:visibility="gone"
+                app:iconSize="18sp"
+                />
+
+        </RelativeLayout>
+
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <FrameLayout
+        android:id="@+id/speaker_emoji_holder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/screenShareLayout"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/localScreenShareView"
+            android:layout_width="match_parent"
+            android:layout_height="470dp"
+            android:background="@color/md_grey_200"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="200sp"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="You're sharing your screen with everyone"
+                    android:textColor="@color/white"
+                    android:textFontWeight="500"
+                    android:textSize="16dp">
+
+                </TextView>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStopScreenShare"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0"
+                    android:padding="10dp"
+                    android:text="Stop Presenting"
+                    android:textAllCaps="false"
+                    android:textFontWeight="500"
+                    android:textSize="16dp"
+                    app:cornerRadius="10dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/shareLayout"
+            android:layout_width="match_parent"
+            android:layout_height="420dp"
+            android:visibility="gone">
+
+            <live.videosdk.rtc.android.VideoView
+                android:id="@+id/shareView"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+
+            <TextView
+                android:id="@+id/tvScreenShareParticipantName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|bottom"
+                android:layout_margin="8dp"
+                android:background="@drawable/name_style"
+                android:fontFamily="sans-serif-medium"
+                android:padding="6dp"
+                android:textColor="@color/white"
+                android:textFontWeight="600"
+                android:textSize="16dp"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/speaker_linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_below="@+id/screenShareLayout">
+
+        <GridLayout
+            android:id="@+id/speakerGridLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/controllers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="15dp"
+        >
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMic"
+            style="@style/iconOnly"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="15dp"
+            android:alpha="0.75"
+            android:backgroundTint="@color/semiTransperentColor"
+            android:contentDescription="@string/toggle_mic"
+            app:icon="@drawable/ic_mic_on"
+            app:iconGravity="textStart"
+            app:iconTint="@color/white"
+            app:strokeWidth="0dp"
+            app:iconSize="20dp"
+            app:shapeAppearanceOverlay="@style/fab_square" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnWebcam"
+            style="@style/iconOnly"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/btnMic"
+            android:alpha="0.75"
+            android:backgroundTint="@color/semiTransperentColor"
+            android:contentDescription="@string/toggle_camera"
+            app:icon="@drawable/ic_video_camera"
+            app:iconGravity="textStart"
+            app:iconTint="@color/white"
+            app:strokeWidth="0dp"
+            app:iconSize="20dp"
+            app:shapeAppearanceOverlay="@style/fab_square" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnScreenShare"
+            style="@style/iconOnly"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/btnWebcam"
+            android:layout_marginVertical="15dp"
+            android:alpha="0.75"
+            android:backgroundTint="@color/semiTransperentColor"
+            android:contentDescription="@string/toggle_screenshare"
+            app:icon="@drawable/ic_screen_share"
+            app:iconGravity="textStart"
+            app:iconTint="@color/white"
+            app:strokeWidth="0dp"
+            app:iconSize="20dp"
+            app:shapeAppearanceOverlay="@style/fab_square" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRecording"
+            style="@style/iconOnly"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/btnScreenShare"
+            android:alpha="0.75"
+            android:backgroundTint="@color/semiTransperentColor"
+            android:contentDescription="@string/toggle_recording"
+            app:icon="@drawable/ic_recording"
+            app:iconGravity="textStart"
+            app:iconTint="@color/white"
+            app:strokeWidth="0dp"
+            app:iconSize="20dp"
+            app:shapeAppearanceOverlay="@style/fab_square" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSetting"
+            style="@style/iconOnly"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/btnRecording"
+            android:layout_marginVertical="15dp"
+            android:alpha="0.75"
+            android:backgroundTint="@color/semiTransperentColor"
+            app:icon="@drawable/ic_setting"
+            app:iconGravity="textStart"
+            app:iconTint="@color/white"
+            app:strokeWidth="0dp"
+            app:iconSize="15dp"
+            app:shapeAppearanceOverlay="@style/fab_square" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

@@ -1,0 +1,56 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/joinMeetingLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:orientation="vertical">
+
+    <EditText
+        android:id="@+id/etMeetingId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter meeting code"
+        android:textColorHint="#9A9FA5"
+        android:background="@drawable/dropdown_style"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:padding="16dp"
+        android:fontFamily="sans-serif-medium"
+        android:textFontWeight="500"
+        android:layout_marginVertical="12dp"
+        android:maxLines="1"
+        android:singleLine="true" />
+
+    <EditText
+        android:id="@+id/etName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/dropdown_style"
+        android:gravity="center"
+        android:hint="Enter your name"
+        android:textColor="@color/white"
+        android:textColorHint="#9A9FA5"
+        android:padding="16dp"
+        android:fontFamily="sans-serif-medium"
+        android:textFontWeight="500"
+        android:maxLines="1"
+        android:singleLine="true"
+        />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnJoin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:letterSpacing="0"
+        android:text="Join as a speaker"
+        android:textAllCaps="false"
+        android:textSize="18dp"
+        app:cornerRadius="15dp"
+        android:padding="16dp"
+        android:fontFamily="sans-serif-medium"
+        android:textFontWeight="700"
+        android:layout_marginVertical="12dp"/>
+
+</LinearLayout>
