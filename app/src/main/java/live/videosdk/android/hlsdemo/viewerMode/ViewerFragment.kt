@@ -250,7 +250,7 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
         override fun onHlsStateChanged(HlsState: JSONObject) {
             if (HlsState.has("status")) {
                 try {
-                    if ((HlsState.getString("status") == "HLS_STARTED") && HlsState.has("downstreamUrl")) {
+                    if ((HlsState.getString("status") == "HLS_PLAYABLE") && HlsState.has("downstreamUrl")) {
                         downStreamUrl = HlsState.getString("downstreamUrl")
                         initializePlayer()
                         showViewerCount()
@@ -436,11 +436,6 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            if (error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS) {
-                releasePlayer()
-                clearStartPosition()
-                initializePlayer()
-            }
             if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
                 player!!.seekToDefaultPosition()
                 player!!.prepare()
