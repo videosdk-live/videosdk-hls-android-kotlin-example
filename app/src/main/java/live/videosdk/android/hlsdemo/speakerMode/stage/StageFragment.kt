@@ -847,6 +847,7 @@ class StageFragment() : Fragment() {
                     "h720p_w960p",
                     facingMode,
                     CustomStreamTrack.VideoMode.DETAIL,
+                    true,
                     mContext
                 )
                 meeting!!.enableWebcam(videoCustomTrack)

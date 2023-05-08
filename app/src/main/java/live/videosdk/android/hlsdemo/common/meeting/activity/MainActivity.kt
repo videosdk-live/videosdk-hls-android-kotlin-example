@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
             "h720p_w960p",
             facingMode,
             CustomStreamTrack.VideoMode.TEXT,
+            true,
             this
         )
         customTracks["video"] = videoCustomTrack
@@ -57,7 +58,7 @@ class MainActivity : AppCompatActivity() {
         // create a new meeting instance
         meeting = VideoSDK.initMeeting(
             this@MainActivity, meetingId, localParticipantName,
-            micEnabled, webcamEnabled, null, mode, customTracks
+            micEnabled, webcamEnabled, null, mode, true,customTracks
         )
         meeting!!.addEventListener(object : MeetingEventListener() {
             override fun onMeetingJoined() {
