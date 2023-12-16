@@ -66,7 +66,7 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
     private var exoPause: ImageButton? = null
     private var ended = false
     private var hlsStarted = false
-    private var downStreamUrl: String? = null
+    private var playbackHlsUrl: String? = null
     private var playerEventListener: PlayerEventListener? = null
     private var btnReactions: MaterialButton? = null
     private var btnAddToCart: MaterialButton? = null
@@ -167,7 +167,7 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
                         meeting!!.meetingId,
                         object : ResponseListener<String?> {
                             override fun onResponse(url: String?) {
-                                downStreamUrl = url
+                                playbackHlsUrl = url
                                 initializePlayer()
                                 showViewerCount()
                                 hlsStarted = true
@@ -250,8 +250,8 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
         override fun onHlsStateChanged(HlsState: JSONObject) {
             if (HlsState.has("status")) {
                 try {
-                    if ((HlsState.getString("status") == "HLS_PLAYABLE") && HlsState.has("downstreamUrl")) {
-                        downStreamUrl = HlsState.getString("downstreamUrl")
+                    if ((HlsState.getString("status") == "HLS_PLAYABLE") && HlsState.has("playbackHlsUrl")) {
+                        playbackHlsUrl = HlsState.getString("playbackHlsUrl")
                         initializePlayer()
                         showViewerCount()
                         hlsStarted = true
@@ -359,7 +359,7 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
             lastSeenTracks = Tracks.EMPTY
             dataSourceFactory = DefaultHttpDataSource.Factory()
             val mediaSource = HlsMediaSource.Factory(dataSourceFactory!!).createMediaSource(
-                MediaItem.fromUri(Uri.parse(downStreamUrl))
+                MediaItem.fromUri(Uri.parse(playbackHlsUrl))
             )
             val playerBuilder = ExoPlayer.Builder( /* context= */(mContext)!!)
             player = playerBuilder.build()
@@ -480,7 +480,7 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
     override fun onDestroy() {
         mContext = null
         mActivity = null
-        downStreamUrl = null
+        playbackHlsUrl = null
         releasePlayer()
         clearStartPosition()
         if (meeting != null) {

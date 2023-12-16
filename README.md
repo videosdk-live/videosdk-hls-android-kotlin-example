@@ -11,13 +11,12 @@
 
 At Video SDK, we’re building tools to help companies create world-class collaborative products with capabilities of live audio/videos, compose cloud recordings/rtmp/hls and interaction APIs.
 
-
 ## Demo App
 
 📱 Download the sample Android app here: https://appdistribution.firebase.dev/i/a8156572b0936799
 
 ## Interactive Livestream (HLS)
-    
+
 - Interactive live stream (HLS) is a media streaming protocol for delivering visual and audio media to viewers over the internet.
 - Interactive live stream (HLS) allows you to distribute content and ensure excellent viewing experiences across devices, playback platforms, and network conditions. It is the ideal protocol for streaming video to large audiences scattered across geographies.
 
@@ -36,6 +35,7 @@ At Video SDK, we’re building tools to help companies create world-class collab
 <br/>
 
 ## Setup Guide
+
 - Sign up on [VideoSDK](https://app.videosdk.live) and visit [API Keys](https://app.videosdk.live/api-keys) section to get your API key and Secret key.
 
 - Get familiarized with [API key and Secret key](https://docs.videosdk.live/android/guide/video-and-audio-calling-api-sdk/signup-and-create-api).
@@ -45,6 +45,7 @@ At Video SDK, we’re building tools to help companies create world-class collab
 <br/>
 
 ## Prerequisites
+
 - Development environment requirements:
   - [Java Development Kit](https://www.oracle.com/java/technologies/downloads/)
   - Android Studio 3.0 or later
@@ -54,6 +55,7 @@ At Video SDK, we’re building tools to help companies create world-class collab
 <br/>
 
 ## Run the Sample Project
+
 ### 1. Clone the sample project
 
 Clone the repository to your local environment.
@@ -90,8 +92,8 @@ Run the android app with **Shift+F10** or the **▶ Run** from toolbar.
 - `Stream` - Stream means video or audio media content that is either published
   by `local participant` or `remote participants`.
 - `Mode` - There are 2 types of modes:
-    1. `CONFERENCE`: Both audio and video streams will be produced and consumed in this mode.
-    2. `VIEWER`: Audio and video streams will not be produced or consumed in this mode.
+  1. `CONFERENCE`: Both audio and video streams will be produced and consumed in this mode.
+  2. `VIEWER`: Audio and video streams will not be produced or consumed in this mode.
 
 <br/>
 
@@ -111,6 +113,7 @@ Add all the following permissions to AndroidManifest.xml file.
 <br/>
 
 ## Token Generation
+
 Token is used to create and validate a meeting using API and also initialise a meeting.
 
 🛠️ `Development Environment`:
@@ -124,12 +127,14 @@ Token is used to create and validate a meeting using API and also initialise a m
 <br/>
 
 ## API: Create and Validate meeting
+
 - `create meeting` - Please refer this [documentation](https://docs.videosdk.live/api-reference/realtime-communication/create-room) to create meeting.
 - `validate meeting`- Please refer this [documentation](https://docs.videosdk.live/api-reference/realtime-communication/validate-room) to validate the meetingId.
 
 <br/>
 
 ## [Initialize a Meeting](https://docs.videosdk.live/android/api/sdk-reference/initMeeting)
+
 1. For meeting initialization, you have to first initialize the `VideoSDK`. You can initialize the `VideoSDK` using `initialize()` method.
 
 ```js
@@ -158,11 +163,13 @@ Token is used to create and validate a meeting using API and also initialise a m
 ```
 
 ## [Join Meeting](https://docs.videosdk.live/android/guide/video-and-audio-calling-api-sdk/features/start-join-meeting)
+
 ```js
 meeting!!.join()
 ```
 
 ## [Leave or End Meeting](https://docs.videosdk.live/android/guide/video-and-audio-calling-api-sdk/features/leave-end-meeting)
+
 ```js
 // Only one participant will leave/exit the meeting; the rest of the participants will remain.
 meeting!!.leave();
@@ -180,11 +187,12 @@ meeting!!.changeMode(mode: String?)
 ```
 
 ## [Setup MeetingEventListener](https://docs.videosdk.live/android/api/sdk-reference/meeting-class/meeting-event-listener-class)
+
 By implementing `MeetingEventListener`, VideoSDK sends callbacks to the client app whenever there is a change or update in the meeting after a user joins.
 
 ```js
   val meetingEventListener: MeetingEventListener = object : MeetingEventListener() {
-        
+
         override fun onMeetingJoined() {
            // This event will be emitted when a localParticipant(you) successfully joined the meeting.
         }
@@ -202,17 +210,17 @@ By implementing `MeetingEventListener`, VideoSDK sends callbacks to the client a
            // This event will be emitted when a joined participant left the meeting.
            // [participant]: participant who left the meeting
         }
-        
+
         override fun onHlsStateChanged(HlsState: JSONObject) {
            // This event will be emitted whenever meeting HLS state changes.
            // [HlsState] : state of HLS
         }
-        
+
         override fun onParticipantModeChanged(data: JSONObject) {
            // This event will be emitted when any partcipant's mode changed.
            // [data] : { mode: String, participantId: String }
         }
-        
+
         override fun onPresenterChanged(participantId: String?) {
            // This event will be emitted when any participant starts or stops screen sharing.
            // [participantId]: Id of participant who shares the screen.
@@ -236,7 +244,7 @@ By implementing `MeetingEventListener`, VideoSDK sends callbacks to the client a
 
 - **onHlsStateChanged** - Whenever meeting HLS state changes, then `onHlsStateChanged` event will trigger.
 
-- You can get the **`downstreamUrl`** of the HLS to play it on the Viewer side when the state changes to **`HLS_PLAYABLE`**.
+- You can get the **`playbackHlsUrl`** and **`livestreamUrl`** of the HLS to play it on the Viewer side when the state changes to **`HLS_PLAYABLE`**.
 
 ```js
 private val meetingEventListener: MeetingEventListener = object : MeetingEventListener() {
@@ -247,22 +255,21 @@ private val meetingEventListener: MeetingEventListener = object : MeetingEventLi
         "HLS_STARTED" -> Log.d("onHlsStateChanged", "Meeting hls is started")
         "HLS_PLAYABLE" -> {
             Log.d("onHlsStateChanged", "Meeting hls is playable now")
-            // on hls playable you will receive downstreamUrl
-            val downStreamUrl = HlsState.getString("downstreamUrl")
+            // on hls playable you will receive playbackHlsUrl
+            val playbackHlsUrl = HlsState.getString("playbackHlsUrl")
         }
         "HLS_STOPPING" -> Log.d("onHlsStateChanged", "Meeting hls is stopping")
         "HLS_STOPPED" -> Log.d("onHlsStateChanged", "Meeting hls is stopped")
     }
   }
-  
+
 }
 ```
-
-
 
 ## Methods and Listeners for Conference(Speaker) mode
 
 ## [Mute/Unmute Local Audio](https://docs.videosdk.live/android/guide/video-and-audio-calling-api-sdk/features/mic-controls)
+
 ```js
 // unmute mic
 meeting!!.unmuteMic()
@@ -272,6 +279,7 @@ meeting!!.muteMic()
 ```
 
 ## [Change Audio Device](https://docs.videosdk.live/android/guide/video-and-audio-calling-api-sdk/features/mic-controls#2-change-audio-device)
+
 - The meeting.mics function allows a participant to list all of the attached microphones (e.g., Bluetooth and Earphone).
 
 ```js
@@ -283,13 +291,13 @@ meeting!!.muteMic()
 
 ```js
 // change mic
-meeting!!.changeMic(device: AudioDevice?) 
+meeting!!.changeMic(device: AudioDevice?)
 ```
 
 Please consult our documentation [Change Audio Device](https://docs.videosdk.live/android/guide/video-and-audio-calling-api-sdk/features/mic-controls#2-change-audio-device) for more infromation.
 
-
 ## [Enable/Disable Local Webcam](https://docs.videosdk.live/android/guide/video-and-audio-calling-api-sdk/features/camera-controls)
+
 ```js
 // enable webcam
 meeting!!.enableWebcam()
@@ -299,12 +307,14 @@ meeting!!.disableWebcam()
 ```
 
 ## [Switch Local Webcam](https://docs.videosdk.live/android/guide/video-and-audio-calling-api-sdk/features/camera-controls)
+
 ```js
 // switch webcam
 meeting!!.changeWebcam()
 ```
 
 ## [Start/Stop HLS]()
+
 ```js
 // start HLS
 meeting!!.startHls(config: JSONObject?);
@@ -314,6 +324,7 @@ meeting!!.stopHls();
 ```
 
 ## [Pin/Unpin Participant]()
+
 ```js
 // pin local participant
 meeting!!.getLocalParticipant().pin(type: String?);
@@ -323,6 +334,7 @@ meeting!!.getLocalParticipant().unpin(type: String?);
 ```
 
 ## [Setup ParticipantEventListener](https://docs.videosdk.live/android/api/sdk-reference/participant-class/participant-event-listener-class)
+
 By implementing `ParticipantEventListener`, VideoSDK sends callbacks to the client app whenever a participant's video, audio, or screen share stream is enabled or disabled.
 
 ```js
@@ -349,11 +361,12 @@ If you want to learn more about, read the complete documentation of [Android Vid
 <br/>
 
 ## Project Structure
+
 We have 3 packages :
 
 1. [`common`](app/src/main/java/live/videosdk/android/hlsdemo/common) - common package includes all classes/files that are used in both mode.
-2. [`speakerMode`](app/src/main/java/live/videosdk/android/hlsdemo/speakerMode) - speakerMode package includes all classes/files related to `CONFERENCE`  mode(speaker).
-3. [`viewerMode`](app/src/main/java/live/videosdk/android/hlsdemo/viewerMode) - viewerMode package inclues all the classes/files related to `VIEWER`  mode.
+2. [`speakerMode`](app/src/main/java/live/videosdk/android/hlsdemo/speakerMode) - speakerMode package includes all classes/files related to `CONFERENCE` mode(speaker).
+3. [`viewerMode`](app/src/main/java/live/videosdk/android/hlsdemo/viewerMode) - viewerMode package inclues all the classes/files related to `VIEWER` mode.
 
 <br/>
 
@@ -378,10 +391,10 @@ common
       └── CreateMeetingFragment.kt
       └── JoinMeetingFragment.kt
 ```
+
 - [`CreateOrJoinActivity.kt`](app/src/main/java/live/videosdk/android/hlsdemo/common/meeting/activity/CreateOrJoinActivity.kt) and [`activity_create_or_join.xml`](app/src/main/res/layout/activity_create_or_join.xml)
   - This activity is used to ask permissions to the partcipant,and to initiate webcam and mic status.
   - `CreateOrJoinFragment`,`CreateMeetingFragment`,`JoinMeetingFragment` will be bound to this activity.
-  
 - [`CreateOrJoinFragment.kt`](app/src/main/java/live/videosdk/android/hlsdemo/common/meeting/fragment/CreateOrJoinFragment.kt) and [`fragment_create_or_join.xml`](app/src/main/res/layout/fragment_create_or_join.xml) - This fragment will include
   - `Create meeting Button` - This button will call api for create a new meeting and navigate to `CreateMeetingFragment`.
   - `Join as speaker Button` - This button will navigate to `JoinMeetingFragment`.
@@ -389,7 +402,7 @@ common
   <p align="center">
   <img width="300" src="assets/create_or_join.jpg"/>
   </p>
-- [`CreateMeetingFragment.kt`](app/src/main/java/live/videosdk/android/hlsdemo/common/meeting/fragment/CreateMeetingFragment.kt) and [`fragment_create_meeting.xml`](app/src/main/res/layout/fragment_create_meeting.xml) -  This fragement will include
+- [`CreateMeetingFragment.kt`](app/src/main/java/live/videosdk/android/hlsdemo/common/meeting/fragment/CreateMeetingFragment.kt) and [`fragment_create_meeting.xml`](app/src/main/res/layout/fragment_create_meeting.xml) - This fragement will include
   - `TextView for MeetingId` - This textView will contain meeting Id.
   - `EditText for ParticipantName` - This edit text will contain name of the participant.
   - `Create Meeting Button` - This button will navigate to `MainActivity`.
@@ -403,8 +416,7 @@ common
   <p align="center">
   <img width="300" src="assets/join_meeting.gif"/>
   </p>
- - [`MainActivity.kt`](app/src/main/java/live/videosdk/android/hlsdemo/common/meeting/activity/MainActivity.kt) - This activity is used to initialize the meeting and navigate to `MainFragemnt` or `ViewerFragment` according to user choice.
-
+- [`MainActivity.kt`](app/src/main/java/live/videosdk/android/hlsdemo/common/meeting/activity/MainActivity.kt) - This activity is used to initialize the meeting and navigate to `MainFragemnt` or `ViewerFragment` according to user choice.
 
 **2. Live Reactions**
 
@@ -441,6 +453,7 @@ speakerMode
      └── ParticipantListAdapter.kt
      └── ParticipantListFragment.kt
 ```
+
 **1. Manage Tabs**
 
 - [`SpeakerFragment.kt`](app/src/main/java/live/videosdk/android/hlsdemo/speakerMode/manageTabs/SpeakerFragment.kt) & [`TabAdapter.kt`](app/src/main/java/live/videosdk/android/hlsdemo/speakerMode/manageTabs/TabAdapter.kt) files used to manage tabs.
@@ -456,31 +469,31 @@ speakerMode
   <img width="300" src="assets/stage.gif"/>
   </p>
 
-- ***Audio & Video Settings***
+- **_Audio & Video Settings_**
 
-    - [`settings_layout.xml`](app/src/main/res/layout/settings_layout.xml) file used to show Audio & Video Settings.
+  - [`settings_layout.xml`](app/src/main/res/layout/settings_layout.xml) file used to show Audio & Video Settings.
   <p align="center">
   <img width="300" src="assets/settings.gif"/>
   </p>
-  
+
 **3. Participants**
 
 - [`ParticipantListAdapter.kt`](app/src/main/java/live/videosdk/android/hlsdemo/speakerMode/participantLIst/ParticipantListAdapter.kt),[`ParticipantListFragment.kt`](app/src/main/java/live/videosdk/android/hlsdemo/speakerMode/participantLIst/ParticipantListFragment.kt),[`fragment_participant.xml`](app/src/main/res/layout/fragment_participant.xml) and [`item_participant_list_layout.xml`](app/src/main/res/layout/item_participant_list_layout.xml) files used to show Participants.
   <p align="center">
   <img width="300" src="assets/participants.gif"/>
   </p>
- 
- - ***Add as a co-Host***
- 
-    - Here, we are using `pubSub` to request a viewer to be co-host. [Click here](https://docs.videosdk.live/android/guide/video-and-audio-calling-api-sdk/features/pubsub) to know more about `pubSub`.
-  <p align="center">
-    <b>Host   &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; Viewer </b>
- </p>
- <p align="center">
-  <img width="300" src="assets/add_as_co_host_speaker.gif"/>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img width="300" src="assets/add_as_co_host_viewer.gif"/>
+
+- **_Add as a co-Host_**
+
+  - Here, we are using `pubSub` to request a viewer to be co-host. [Click here](https://docs.videosdk.live/android/guide/video-and-audio-calling-api-sdk/features/pubsub) to know more about `pubSub`.
+   <p align="center">
+     <b>Host   &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; Viewer </b>
   </p>
+  <p align="center">
+   <img width="300" src="assets/add_as_co_host_speaker.gif"/>
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+   <img width="300" src="assets/add_as_co_host_viewer.gif"/>
+   </p>
 
 <br/>
 
@@ -490,7 +503,7 @@ speakerMode
 viewerMode
 └── ViewerFragment.kt
 └── TrackSelectionDialog.kt
-└── productsAdapter.kt   
+└── productsAdapter.kt
 ```
 
 **1. ViewerFragment**
@@ -507,7 +520,7 @@ viewerMode
   <p align="center">
   <img width="300" src="assets/quality.gif"/>
   </p>
-  
+
 **3. AddToCart**
 
 - [`ProductsAdapter.kt`](app/src/main/java/live/videosdk/android/hlsdemo/viewerMode/ProductsAdapter.kt),[`products_layout.xml`](app/src/main/res/layout/products_layout.xml),[`item_products.xml`](app/src/main/res/layout/item_products.xml) file used to show list of products.
@@ -518,7 +531,8 @@ viewerMode
 
 <br/>
 
-## Examples 
+## Examples
+
 ### Examples for Conference
 
 - [videosdk-rtc-prebuilt-examples](https://github.com/videosdk-live/videosdk-rtc-prebuilt-examples)
@@ -541,11 +555,12 @@ viewerMode
 <br/>
 
 ## Documentation
+
 [Read the documentation](https://docs.videosdk.live/) to start using Video SDK.
 
 <br/>
 
 ## Community
+
 - [Discord](https://discord.gg/Gpmj6eCq5u) - To get involved with the Video SDK community, ask questions and share tips.
 - [Twitter](https://twitter.com/video_sdk) - To receive updates, announcements, blog posts, and general Video SDK tips.
-
