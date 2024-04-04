@@ -128,7 +128,7 @@ class NetworkUtils(private var context: Context) {
                 override fun onResponse(response: JSONObject) {
                     try {
                         meetingEventListener.onResponse(
-                            response.getJSONObject("data").getString("downstreamUrl")
+                            response.getJSONObject("data").getString("playbackHlsUrl")
                         )
                     } catch (e: JSONException) {
                         e.printStackTrace()
