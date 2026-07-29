@@ -137,7 +137,8 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
         })
         if (meeting != null) {
             emojiListener =
-                PubSubMessageListener { pubSubMessage ->
+                object : PubSubMessageListener {
+                    override fun onMessageReceived(pubSubMessage: PubSubMessage) {
                     when (pubSubMessage.message) {
                         "loveEyes" -> showEmoji(resources.getDrawable(R.drawable.love_eyes_emoji))
                         "laughing" -> showEmoji(resources.getDrawable(R.drawable.laughing))
@@ -146,12 +147,15 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
                         "clap" -> showEmoji(resources.getDrawable(R.drawable.clap))
                         "heart" -> showEmoji(resources.getDrawable(R.drawable.heart))
                     }
+                    }
                 }
             // notify user of any new emoji
             meeting!!.pubSub.subscribe("emoji", emojiListener)
-            coHostListener = PubSubMessageListener { pubSubMessage: PubSubMessage ->
-                if ((pubSubMessage.message == meeting!!.localParticipant.id)) {
-                    showCoHostRequestDialog(pubSubMessage.senderName)
+            coHostListener = object : PubSubMessageListener {
+                override fun onMessageReceived(pubSubMessage: PubSubMessage) {
+                    if ((pubSubMessage.message == meeting!!.localParticipant.id)) {
+                        showCoHostRequestDialog(pubSubMessage.senderName)
+                    }
                 }
             }
             // notify user of any new emoji

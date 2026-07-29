@@ -4,6 +4,7 @@ import android.content.Context
 import live.videosdk.rtc.android.Meeting
 import live.videosdk.rtc.android.listeners.PubSubMessageListener
 import live.videosdk.rtc.android.listeners.MeetingEventListener
+import live.videosdk.rtc.android.lib.PubSubMessage
 import org.json.JSONObject
 import live.videosdk.android.hlsdemo.R
 import live.videosdk.rtc.android.listeners.ParticipantEventListener
@@ -153,24 +154,26 @@ class ParticipantListAdapter(
                 participant
             )
         }
-        coHostAnswerListener = PubSubMessageListener { pubSubMessage ->
-            if (pubSubMessage.senderId == participant.id) {
-                if (pubSubMessage.message == "decline") {
-                    Toast.makeText(
-                        context,
-                        pubSubMessage.senderName + " has declined your request.",
-                        Toast.LENGTH_LONG
-                    ).show()
+        coHostAnswerListener = object : PubSubMessageListener {
+            override fun onMessageReceived(pubSubMessage: PubSubMessage) {
+                if (pubSubMessage.senderId == participant.id) {
+                    if (pubSubMessage.message == "decline") {
+                        Toast.makeText(
+                            context,
+                            pubSubMessage.senderName + " has declined your request.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    if (pubSubMessage.message == "accept") {
+                        Toast.makeText(
+                            context,
+                            pubSubMessage.senderName + " has accept your request.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    holder.requestedIndicator.visibility = View.GONE
+                    holder.btnParticipantMoreOptions.isEnabled = true
                 }
-                if (pubSubMessage.message == "accept") {
-                    Toast.makeText(
-                        context,
-                        pubSubMessage.senderName + " has accept your request.",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-                holder.requestedIndicator.visibility = View.GONE
-                holder.btnParticipantMoreOptions.isEnabled = true
             }
         }
 

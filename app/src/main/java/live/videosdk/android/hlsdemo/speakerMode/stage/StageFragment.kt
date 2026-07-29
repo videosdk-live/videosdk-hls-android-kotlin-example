@@ -42,6 +42,7 @@ import live.videosdk.rtc.android.*
 import live.videosdk.rtc.android.VideoView
 import live.videosdk.rtc.android.lib.AppRTCAudioManager.AudioDevice
 import live.videosdk.rtc.android.lib.JsonUtils
+import live.videosdk.rtc.android.lib.PubSubMessage
 import live.videosdk.rtc.android.listeners.MeetingEventListener
 import live.videosdk.rtc.android.listeners.ParticipantEventListener
 import live.videosdk.rtc.android.listeners.PubSubMessageListener
@@ -161,7 +162,8 @@ class StageFragment() : Fragment() {
                 showParticipants(participant)
             }
             emojiListener =
-                PubSubMessageListener { pubSubMessage ->
+                object : PubSubMessageListener {
+                    override fun onMessageReceived(pubSubMessage: PubSubMessage) {
                     when (pubSubMessage.message) {
                         "loveEyes" -> showEmoji(resources.getDrawable(R.drawable.love_eyes_emoji))
                         "laughing" -> showEmoji(resources.getDrawable(R.drawable.laughing))
@@ -170,17 +172,20 @@ class StageFragment() : Fragment() {
                         "clap" -> showEmoji(resources.getDrawable(R.drawable.clap))
                         "heart" -> showEmoji(resources.getDrawable(R.drawable.heart))
                     }
+                    }
                 }
             // notify user of any new emoji
             meeting!!.pubSub.subscribe("emoji", emojiListener)
             removeCoHostListener =
-                PubSubMessageListener { pubSubMessage ->
+                object : PubSubMessageListener {
+                    override fun onMessageReceived(pubSubMessage: PubSubMessage) {
                     if ((pubSubMessage.message == meeting!!.localParticipant.id)) {
                         meeting!!.changeMode("VIEWER")
                         requireActivity().supportFragmentManager
                             .beginTransaction()
                             .replace(R.id.mainLayout, ViewerFragment(), "viewerFragment")
                             .commit()
+                    }
                     }
                 }
             meeting!!.pubSub.subscribe("removeCoHost", removeCoHostListener)
@@ -545,7 +550,7 @@ class StageFragment() : Fragment() {
             toggleScreenShareIcon()
         }
 
-        override fun onSpeakerChanged(participantId: String) {
+        override fun onSpeakerChanged(participantId: String?) {
             if (!isNullOrEmpty(participantId)) {
                 if (speakerView != null) {
                     if (speakerView!!.containsKey(participantId)) {
@@ -826,7 +831,7 @@ class StageFragment() : Fragment() {
             ).show()
             return
         }
-        meeting!!.enableScreenShare(data)
+        meeting!!.enableScreenShare(data, true)
     }
 
     private fun setActionListeners() {
@@ -848,14 +853,15 @@ class StageFragment() : Fragment() {
                     facingMode,
                     CustomStreamTrack.VideoMode.DETAIL,
                     true,
-                    mContext
+                    mContext,
+                    VideoSDK.getSelectedVideoDevice()
                 )
                 meeting!!.enableWebcam(videoCustomTrack)
             }
         }
         btnRecording!!.setOnClickListener { v: View? ->
             if (recordingEnabled) stopRecordingConfirmDialog() else {
-                meeting!!.startRecording(null, null, null)
+                meeting!!.startRecording(null, null, null, null)
             }
         }
         btnLeave!!.setOnClickListener { v: View? -> (mActivity as MainActivity?)!!.showLeaveDialog() }
@@ -876,7 +882,7 @@ class StageFragment() : Fragment() {
                 JsonUtils.jsonPut(config, "layout", layout)
                 JsonUtils.jsonPut(config, "orientation", "portrait")
                 JsonUtils.jsonPut(config, "theme", "DARK")
-                meeting!!.startHls(config)
+                meeting!!.startHls(config, null)
             } else {
                 meeting!!.stopHls()
             }

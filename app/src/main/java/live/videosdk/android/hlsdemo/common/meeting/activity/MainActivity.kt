@@ -49,7 +49,8 @@ class MainActivity : AppCompatActivity() {
             facingMode,
             CustomStreamTrack.VideoMode.TEXT,
             true,
-            this
+            this,
+            VideoSDK.getSelectedVideoDevice()
         )
         customTracks["video"] = videoCustomTrack
         val audioCustomTrack = VideoSDK.createAudioTrack("high_quality", this)
@@ -58,7 +59,7 @@ class MainActivity : AppCompatActivity() {
         // create a new meeting instance
         meeting = VideoSDK.initMeeting(
             this@MainActivity, meetingId, localParticipantName,
-            micEnabled, webcamEnabled, null, mode, true,customTracks
+            micEnabled, webcamEnabled, null, mode, true,customTracks,null
         )
         meeting!!.addEventListener(object : MeetingEventListener() {
             override fun onMeetingJoined() {

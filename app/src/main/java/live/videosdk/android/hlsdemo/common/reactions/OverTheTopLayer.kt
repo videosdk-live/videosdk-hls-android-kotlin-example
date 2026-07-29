@@ -88,15 +88,11 @@ class OverTheTopLayer {
                 View.MeasureSpec.makeMeasureSpec(minWidth, View.MeasureSpec.AT_MOST),
                 View.MeasureSpec.makeMeasureSpec(minHeight, View.MeasureSpec.AT_MOST)
             )
-            var params = imageView.layoutParams as FrameLayout.LayoutParams
-            if (params == null) {
-                params = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    Gravity.TOP
-                )
-                imageView.layoutParams = params
-            }
+            val params = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP
+            )
             val xPosition = mDrawLocation[0]
             val yPosition = mDrawLocation[1]
             params.width = minWidth
