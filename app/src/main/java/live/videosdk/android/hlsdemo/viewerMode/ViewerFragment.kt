@@ -1,5 +1,12 @@
 package live.videosdk.android.hlsdemo.viewerMode
 
+import live.videosdk.android.hlsdemo.common.utils.sdkScope
+
+import kotlinx.coroutines.launch
+
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
@@ -36,11 +43,10 @@ import live.videosdk.android.hlsdemo.common.meeting.activity.CreateOrJoinActivit
 import live.videosdk.android.hlsdemo.common.meeting.activity.MainActivity
 import live.videosdk.android.hlsdemo.common.utils.ResponseListener
 import live.videosdk.android.hlsdemo.speakerMode.manageTabs.SpeakerFragment
-import live.videosdk.rtc.android.Meeting
+import live.videosdk.rtc.android.Room
 import live.videosdk.rtc.android.Participant
-import live.videosdk.rtc.android.lib.JsonUtils
 import live.videosdk.rtc.android.lib.PubSubMessage
-import live.videosdk.rtc.android.listeners.MeetingEventListener
+import live.videosdk.rtc.android.listeners.RoomEventListener
 import live.videosdk.rtc.android.listeners.PubSubMessageListener
 import live.videosdk.rtc.android.model.PubSubPublishOptions
 import org.json.JSONArray
@@ -49,7 +55,7 @@ import org.json.JSONObject
 
 class ViewerFragment() : Fragment(), View.OnClickListener,
     ControllerVisibilityListener {
-    private var meeting: Meeting? = null
+    private var meeting: Room? = null
     private var playerView: StyledPlayerView? = null
     private var controllerLayout: LinearLayout? = null
     private var player: ExoPlayer? = null
@@ -150,16 +156,16 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
                     }
                 }
             // notify user of any new emoji
-            meeting!!.pubSub.subscribe("emoji", emojiListener)
+            sdkScope.launch { meeting!!.pubSub.subscribe("emoji", emojiListener!!) }
             coHostListener = object : PubSubMessageListener {
                 override fun onMessageReceived(pubSubMessage: PubSubMessage) {
                     if ((pubSubMessage.message == meeting!!.localParticipant.id)) {
-                        showCoHostRequestDialog(pubSubMessage.senderName)
+                        showCoHostRequestDialog(pubSubMessage.senderName ?: "")
                     }
                 }
             }
             // notify user of any new emoji
-            meeting!!.pubSub.subscribe("coHost", coHostListener)
+            sdkScope.launch { meeting!!.pubSub.subscribe("coHost", coHostListener!!) }
         }
         ActionListener(view)
         val networkUtils = NetworkUtils(requireContext())
@@ -168,7 +174,7 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
                 override fun onResponse(token: String?) {
                     networkUtils.checkActiveHls(
                         token,
-                        meeting!!.meetingId,
+                        meeting!!.id,
                         object : ResponseListener<String?> {
                             override fun onResponse(url: String?) {
                                 playbackHlsUrl = url
@@ -201,41 +207,40 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
 
     private fun ActionListener(view: View) {
         val pubSubPublishOptions = PubSubPublishOptions()
-        pubSubPublishOptions.isPersist = false
         btnReactions!!.setOnClickListener { v: View? ->
             reactionsLayout!!.visibility = View.VISIBLE
         }
         view.findViewById<View>(R.id.loveEyes).setOnClickListener { v: View? ->
             showEmoji(resources.getDrawable(R.drawable.love_eyes_emoji))
-            meeting!!.pubSub.publish("emoji", "love_eyes", pubSubPublishOptions)
+            sdkScope.launch { meeting!!.pubSub.publish("emoji", "love_eyes", pubSubPublishOptions) }
             reactionsLayout!!.visibility = View.GONE
         }
         view.findViewById<View>(R.id.laughing).setOnClickListener { v: View? ->
-            meeting!!.pubSub.publish("emoji", "laughing", pubSubPublishOptions)
+            sdkScope.launch { meeting!!.pubSub.publish("emoji", "laughing", pubSubPublishOptions) }
             reactionsLayout!!.visibility = View.GONE
         }
         view.findViewById<View>(R.id.thumbs_up).setOnClickListener { v: View? ->
-            meeting!!.pubSub.publish("emoji", "thumbs_up", pubSubPublishOptions)
+            sdkScope.launch { meeting!!.pubSub.publish("emoji", "thumbs_up", pubSubPublishOptions) }
             reactionsLayout!!.visibility = View.GONE
         }
         view.findViewById<View>(R.id.celebration).setOnClickListener { v: View? ->
-            meeting!!.pubSub.publish("emoji", "celebration", pubSubPublishOptions)
+            sdkScope.launch { meeting!!.pubSub.publish("emoji", "celebration", pubSubPublishOptions) }
             reactionsLayout!!.visibility = View.GONE
         }
         view.findViewById<View>(R.id.clap).setOnClickListener { v: View? ->
-            meeting!!.pubSub.publish("emoji", "clap", pubSubPublishOptions)
+            sdkScope.launch { meeting!!.pubSub.publish("emoji", "clap", pubSubPublishOptions) }
             reactionsLayout!!.visibility = View.GONE
         }
         view.findViewById<View>(R.id.heart).setOnClickListener { v: View? ->
-            meeting!!.pubSub.publish("emoji", "heart", pubSubPublishOptions)
+            sdkScope.launch { meeting!!.pubSub.publish("emoji", "heart", pubSubPublishOptions) }
             reactionsLayout!!.visibility = View.GONE
         }
         btnLeave!!.setOnClickListener { (mActivity as MainActivity?)!!.showLeaveDialog() }
         btnAddToCart!!.setOnClickListener { showProducts() }
     }
 
-    private val meetingEventListener: MeetingEventListener = object : MeetingEventListener() {
-        override fun onMeetingLeft() {
+    private val meetingEventListener: RoomEventListener = object : RoomEventListener() {
+        override fun onRoomLeft(reason: live.videosdk.rtc.android.lib.LeaveReason) {
             if (isAdded) {
                 val intents = Intent(
                     mContext,
@@ -251,11 +256,11 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
         }
 
         @RequiresApi(api = Build.VERSION_CODES.P)
-        override fun onHlsStateChanged(HlsState: JSONObject) {
-            if (HlsState.has("status")) {
+        override fun onHlsStateChanged(HlsState: live.videosdk.rtc.android.lib.HLSState, hlsUrl: live.videosdk.rtc.android.model.HLSUrl?) {
+            if (true) {
                 try {
-                    if ((HlsState.getString("status") == "HLS_PLAYABLE") && HlsState.has("playbackHlsUrl")) {
-                        playbackHlsUrl = HlsState.getString("playbackHlsUrl")
+                    if ((HlsState == live.videosdk.rtc.android.lib.HLSState.HLS_PLAYABLE) && hlsUrl?.playbackHlsUrl != null) {
+                        playbackHlsUrl = hlsUrl!!.playbackHlsUrl
                         initializePlayer()
                         showViewerCount()
                         hlsStarted = true
@@ -267,7 +272,7 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
                         btnReactions!!.isEnabled = true
                         btnAddToCart!!.isEnabled = true
                     }
-                    if ((HlsState.getString("status") == "HLS_STOPPED")) {
+                    if ((HlsState == live.videosdk.rtc.android.lib.HLSState.HLS_STOPPED)) {
                         if (hlsStarted) {
                             releasePlayer()
                             clearStartPosition()
@@ -292,7 +297,7 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
             showViewerCount()
         }
 
-        override fun onParticipantLeft(participant: Participant) {
+        override fun onParticipantLeft(participant: Participant, reason: live.videosdk.rtc.android.lib.LeaveReason) {
             showViewerCount()
         }
     }
@@ -488,9 +493,9 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
         releasePlayer()
         clearStartPosition()
         if (meeting != null) {
-            meeting!!.pubSub.unsubscribe("emoji", emojiListener)
-            meeting!!.pubSub.unsubscribe("coHost", coHostListener)
-            meeting!!.removeAllListeners()
+            sdkScope.launch { meeting!!.pubSub.unsubscribe("emoji", emojiListener!!) }
+            sdkScope.launch { meeting!!.pubSub.unsubscribe("coHost", coHostListener!!) }
+            meeting!!.removeAllEventListeners()
             meeting = null
         }
         super.onDestroy()
@@ -506,13 +511,13 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
         close.setOnClickListener { bottomSheetDialog.dismiss() }
         val jsonArray = JSONArray()
         val topDetails = JSONObject()
-        JsonUtils.jsonPut(topDetails, "productImage", R.drawable.blackcroptop)
-        JsonUtils.jsonPut(topDetails, "productName", "Black Top")
-        JsonUtils.jsonPut(topDetails, "productPrice", "23")
+        topDetails.put("productImage", R.drawable.blackcroptop)
+        topDetails.put("productName", "Black Top")
+        topDetails.put("productPrice", "23")
         val jeansDetails = JSONObject()
-        JsonUtils.jsonPut(jeansDetails, "productImage", R.drawable.jeans)
-        JsonUtils.jsonPut(jeansDetails, "productName", "Blue Jeans")
-        JsonUtils.jsonPut(jeansDetails, "productPrice", "11")
+        jeansDetails.put("productImage", R.drawable.jeans)
+        jeansDetails.put("productName", "Blue Jeans")
+        jeansDetails.put("productPrice", "11")
         jsonArray.put(topDetails)
         jsonArray.put(jeansDetails)
         recyclerView.adapter = ProductsAdapter(jsonArray)
@@ -567,11 +572,10 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
         message2.text = "join as speaker"
         val acceptBtn = dialogView.findViewById<Button>(R.id.acceptBtn)
         acceptBtn.setOnClickListener {
-            meeting!!.changeMode("CONFERENCE")
+            sdkScope.launch { meeting!!.changeMode(live.videosdk.rtc.android.lib.Mode.SEND_AND_RECV) }
             alertDialog.dismiss()
             val pubSubPublishOptions: PubSubPublishOptions = PubSubPublishOptions()
-            pubSubPublishOptions.isPersist = false
-            meeting!!.pubSub.publish("coHostRequestAnswer", "accept", pubSubPublishOptions)
+            sdkScope.launch { meeting!!.pubSub.publish("coHostRequestAnswer", "accept", pubSubPublishOptions) }
             requireActivity().supportFragmentManager
                 .beginTransaction()
                 .replace(R.id.mainLayout, SpeakerFragment(), "MainFragment")
@@ -581,8 +585,7 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
         declineBtn.setOnClickListener {
             alertDialog.dismiss()
             val pubSubPublishOptions: PubSubPublishOptions = PubSubPublishOptions()
-            pubSubPublishOptions.isPersist = false
-            meeting!!.pubSub.publish("coHostRequestAnswer", "decline", pubSubPublishOptions)
+            sdkScope.launch { meeting!!.pubSub.publish("coHostRequestAnswer", "decline", pubSubPublishOptions) }
         }
         alertDialog.show()
     }
@@ -592,7 +595,7 @@ class ViewerFragment() : Fragment(), View.OnClickListener,
         val participants = meeting!!.participants
         for (entry: Map.Entry<String, Participant> in participants.entries) {
             val participant = entry.value
-            if ((participant.mode == "VIEWER")) {
+            if ((participant.mode == live.videosdk.rtc.android.lib.Mode.RECV_ONLY)) {
                 viewerCount++
             }
         }

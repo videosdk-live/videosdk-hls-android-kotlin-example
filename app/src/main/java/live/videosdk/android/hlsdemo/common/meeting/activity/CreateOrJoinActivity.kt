@@ -1,5 +1,7 @@
 package live.videosdk.android.hlsdemo.common.meeting.activity
 
+import live.videosdk.android.hlsdemo.common.utils.sdkScope
+
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
@@ -22,8 +24,13 @@ import com.nabinbhandari.android.permissions.Permissions
 import live.videosdk.android.hlsdemo.R
 import live.videosdk.android.hlsdemo.common.meeting.fragment.CreateOrJoinFragment
 import live.videosdk.rtc.android.VideoView
-import live.videosdk.rtc.android.lib.PeerConnectionUtils
-import org.webrtc.*
+import videosdk.org.webrtc.VideoTrack
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import live.videosdk.rtc.android.CustomCameraTrackConfig
+import live.videosdk.rtc.android.CustomStreamTrack
+import live.videosdk.rtc.android.VideoSDK
 
 class CreateOrJoinActivity : AppCompatActivity() {
 
@@ -37,11 +44,8 @@ class CreateOrJoinActivity : AppCompatActivity() {
     private var toolbar: Toolbar? = null
     private var actionBar: ActionBar? = null
 
-    private var videoTrack: VideoTrack? = null
-    private var videoCapturer: VideoCapturer? = null
-    private var initializationOptions: PeerConnectionFactory.InitializationOptions? = null
-    private var peerConnectionFactory: PeerConnectionFactory? = null
-    private var videoSource: VideoSource? = null
+    private val uiScope = CoroutineScope(Dispatchers.Main)
+    private var customVideoTrack: CustomStreamTrack? = null
 
     var permissionsGranted: Boolean = false
     private val permissionHandler: PermissionHandler = object : PermissionHandler() {
@@ -196,62 +200,17 @@ class CreateOrJoinActivity : AppCompatActivity() {
 
     private fun updateCameraView() {
         if (webcamEnabled) {
-            // create PeerConnectionFactory
-            initializationOptions = PeerConnectionFactory.InitializationOptions.builder(this)
-                .createInitializationOptions()
-            PeerConnectionFactory.initialize(initializationOptions)
-            peerConnectionFactory = PeerConnectionFactory.builder().createPeerConnectionFactory()
             joinView!!.setMirror(true)
-            val surfaceTextureHelper: SurfaceTextureHelper =
-                SurfaceTextureHelper.create("CaptureThread", PeerConnectionUtils.getEglContext())
-
-            // create VideoCapturer
-            videoCapturer = createCameraCapturer()
-            videoSource = peerConnectionFactory!!.createVideoSource(videoCapturer!!.isScreencast)
-            videoCapturer!!.initialize(
-                surfaceTextureHelper,
-                applicationContext,
-                videoSource!!.capturerObserver
-            )
-            videoCapturer!!.startCapture(480, 640, 30)
-
-            // create VideoTrack
-            videoTrack = peerConnectionFactory!!.createVideoTrack("100", videoSource)
-
-            // display in localView
-            joinView!!.addTrack(videoTrack)
+            sdkScope.launch {
+                customVideoTrack = VideoSDK.createCameraVideoTrack(CustomCameraTrackConfig.H480P_W640P)
+                joinView!!.addTrack(customVideoTrack!!.track as VideoTrack)
+            }
         } else {
             joinView!!.removeTrack()
             joinView!!.releaseSurfaceViewRenderer()
         }
     }
 
-
-    private fun createCameraCapturer(): VideoCapturer? {
-        val enumerator = Camera1Enumerator(false)
-        val deviceNames: Array<String> = enumerator.deviceNames
-
-        // First, try to find front facing camera
-        for (deviceName in deviceNames) {
-            if (enumerator.isFrontFacing(deviceName)) {
-                val videoCapturer: VideoCapturer = enumerator.createCapturer(deviceName, null)
-                if (videoCapturer != null) {
-                    return videoCapturer
-                }
-            }
-        }
-
-        // Front facing camera not found, try something else
-        for (deviceName in deviceNames) {
-            if (!enumerator.isFrontFacing(deviceName)) {
-                val videoCapturer: VideoCapturer = enumerator.createCapturer(deviceName, null)
-                if (videoCapturer != null) {
-                    return videoCapturer
-                }
-            }
-        }
-        return null
-    }
 
     override fun onDestroy() {
         joinView!!.removeTrack()
@@ -274,26 +233,8 @@ class CreateOrJoinActivity : AppCompatActivity() {
     }
 
     private fun closeCapturer() {
-        if (videoCapturer != null) {
-            try {
-                videoCapturer!!.stopCapture()
-            } catch (e: InterruptedException) {
-                throw RuntimeException(e)
-            }
-            videoCapturer!!.dispose()
-            videoCapturer = null
-        }
-        if (videoSource != null) {
-            videoSource!!.dispose()
-            videoSource = null
-        }
-        if (peerConnectionFactory != null) {
-            peerConnectionFactory!!.stopAecDump()
-            peerConnectionFactory!!.dispose()
-            peerConnectionFactory = null
-        }
-        PeerConnectionFactory.stopInternalTracingCapture()
-        PeerConnectionFactory.shutdownInternalTracer()
+        customVideoTrack?.stop()
+        customVideoTrack = null
     }
 
 

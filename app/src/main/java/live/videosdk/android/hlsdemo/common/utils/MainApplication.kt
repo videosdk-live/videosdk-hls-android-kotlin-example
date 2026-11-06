@@ -7,6 +7,7 @@ import live.videosdk.rtc.android.VideoSDK
 class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+        sdkAppContext = applicationContext
         VideoSDK.initialize(applicationContext)
         AndroidNetworking.initialize(applicationContext)
     }

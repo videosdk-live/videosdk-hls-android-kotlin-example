@@ -1,5 +1,16 @@
 package live.videosdk.android.hlsdemo.speakerMode.stage
 
+import live.videosdk.android.hlsdemo.common.utils.sdkScope
+
+import kotlinx.coroutines.Dispatchers
+
+import kotlinx.coroutines.CoroutineScope
+
+import kotlinx.coroutines.launch
+
+
+import live.videosdk.rtc.android.MediaType
+
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
@@ -40,16 +51,14 @@ import live.videosdk.android.hlsdemo.common.utils.ResponseListener
 import live.videosdk.android.hlsdemo.viewerMode.ViewerFragment
 import live.videosdk.rtc.android.*
 import live.videosdk.rtc.android.VideoView
-import live.videosdk.rtc.android.lib.AppRTCAudioManager.AudioDevice
-import live.videosdk.rtc.android.lib.JsonUtils
 import live.videosdk.rtc.android.lib.PubSubMessage
-import live.videosdk.rtc.android.listeners.MeetingEventListener
+import live.videosdk.rtc.android.listeners.RoomEventListener
 import live.videosdk.rtc.android.listeners.ParticipantEventListener
 import live.videosdk.rtc.android.listeners.PubSubMessageListener
 import org.json.JSONException
 import org.json.JSONObject
-import org.webrtc.RendererCommon
-import org.webrtc.VideoTrack
+import videosdk.org.webrtc.RendererCommon
+import videosdk.org.webrtc.VideoTrack
 import java.util.*
 
 class StageFragment() : Fragment() {
@@ -111,15 +120,15 @@ class StageFragment() : Fragment() {
         speakerGridLayout!!.removeAllViews()
         speakerList = null
         if (meeting != null) {
-            meeting!!.pubSub.unsubscribe("emoji", emojiListener)
-            meeting!!.pubSub.unsubscribe("removeCoHost", removeCoHostListener)
-            meeting!!.localParticipant.removeAllListeners()
+            sdkScope.launch { meeting!!.pubSub.unsubscribe("emoji", emojiListener!!) }
+            sdkScope.launch { meeting!!.pubSub.unsubscribe("removeCoHost", removeCoHostListener!!) }
+            meeting!!.localParticipant.removeAllEventListeners()
             val participants: Iterator<Participant> = meeting!!.participants.values.iterator()
             for (i in 0 until meeting!!.participants.size) {
                 val participant = participants.next()
-                participant.removeAllListeners()
+                participant.removeAllEventListeners()
             }
-            meeting!!.removeAllListeners()
+            meeting!!.removeAllEventListeners()
             meeting = null
         }
         super.onDestroy()
@@ -175,12 +184,12 @@ class StageFragment() : Fragment() {
                     }
                 }
             // notify user of any new emoji
-            meeting!!.pubSub.subscribe("emoji", emojiListener)
+            sdkScope.launch { meeting!!.pubSub.subscribe("emoji", emojiListener!!) }
             removeCoHostListener =
                 object : PubSubMessageListener {
                     override fun onMessageReceived(pubSubMessage: PubSubMessage) {
                     if ((pubSubMessage.message == meeting!!.localParticipant.id)) {
-                        meeting!!.changeMode("VIEWER")
+                        sdkScope.launch { meeting!!.changeMode(live.videosdk.rtc.android.lib.Mode.RECV_ONLY) }
                         requireActivity().supportFragmentManager
                             .beginTransaction()
                             .replace(R.id.mainLayout, ViewerFragment(), "viewerFragment")
@@ -188,7 +197,7 @@ class StageFragment() : Fragment() {
                     }
                     }
                 }
-            meeting!!.pubSub.subscribe("removeCoHost", removeCoHostListener)
+            sdkScope.launch { meeting!!.pubSub.subscribe("removeCoHost", removeCoHostListener!!) }
             setActionListeners()
             setAudioDeviceListeners()
             val networkUtils = NetworkUtils(requireContext())
@@ -197,7 +206,7 @@ class StageFragment() : Fragment() {
                     override fun onResponse(token: String?) {
                         networkUtils.checkActiveHls(
                             token,
-                            meeting!!.meetingId,
+                            meeting!!.id,
                             object : ResponseListener<String?> {
                                 override fun onResponse(response: String?) {
                                     hlsEnabled = true
@@ -307,14 +316,14 @@ class StageFragment() : Fragment() {
         view.findViewById<View>(R.id.speaker_linearLayout).setOnTouchListener(onTouchListener)
         view.findViewById<View>(R.id.btnStopScreenShare).setOnClickListener { v: View? ->
             if (screenshareEnabled) {
-                if (meeting != null) meeting!!.disableScreenShare()
+                if (meeting != null) sdkScope.launch { meeting!!.disableScreenShare() }
             }
         }
         return view
     }
 
-    private val meetingEventListener: MeetingEventListener = object : MeetingEventListener() {
-        override fun onMeetingLeft() {
+    private val meetingEventListener: RoomEventListener = object : RoomEventListener() {
+        override fun onRoomLeft(reason: live.videosdk.rtc.android.lib.LeaveReason) {
             if (isAdded) {
                 val intents = Intent(
                     mContext,
@@ -333,19 +342,19 @@ class StageFragment() : Fragment() {
             showParticipants(participant)
         }
 
-        override fun onParticipantLeft(participant: Participant) {
+        override fun onParticipantLeft(participant: Participant, reason: live.videosdk.rtc.android.lib.LeaveReason) {
             if (speakerList!!.contains(participant)) {
-                participant.unpin("SHARE_AND_CAM")
+                sdkScope.launch { participant.unpin(live.videosdk.rtc.android.PinType.SHARE_AND_CAM) }
                 val participants = meeting!!.participants
                 val participantList: MutableList<Participant?> = ArrayList()
                 participantList.add(meeting!!.localParticipant)
                 if (screenshareEnabled) {
                     for (entry: Map.Entry<String?, Participant> in participants.entries) {
-                        if ((entry.value.mode == "CONFERENCE")) {
+                        if ((entry.value.mode == live.videosdk.rtc.android.lib.Mode.SEND_AND_RECV)) {
                             participantList.add(entry.value)
-                            for (entry1: Map.Entry<String?, Stream> in entry.value.streams.entries) {
+                            for (entry1: Map.Entry<String?, RTCStream> in entry.value.streams.entries) {
                                 val stream = entry1.value
-                                stream.resume()
+                                sdkScope.launch { runCatching { stream.resume() } }
                             }
                             if (participantList.size == 2) break
                         }
@@ -353,11 +362,11 @@ class StageFragment() : Fragment() {
                     showInGUI(participantList)
                 } else {
                     for (entry: Map.Entry<String?, Participant> in participants.entries) {
-                        if ((entry.value.mode == "CONFERENCE")) {
+                        if ((entry.value.mode == live.videosdk.rtc.android.lib.Mode.SEND_AND_RECV)) {
                             participantList.add(entry.value)
-                            for (entry1: Map.Entry<String?, Stream> in entry.value.streams.entries) {
+                            for (entry1: Map.Entry<String?, RTCStream> in entry.value.streams.entries) {
                                 val stream = entry1.value
-                                stream.resume()
+                                sdkScope.launch { runCatching { stream.resume() } }
                             }
                             if (participantList.size == 4) break
                         }
@@ -367,7 +376,7 @@ class StageFragment() : Fragment() {
                 speakerList = ArrayList()
                 speakerList!!.add(meeting!!.localParticipant)
                 for (entry: Map.Entry<String?, Participant> in participants.entries) {
-                    if ((entry.value.mode == "CONFERENCE")) {
+                    if ((entry.value.mode == live.videosdk.rtc.android.lib.Mode.SEND_AND_RECV)) {
                         speakerList!!.add(entry.value)
                         if (speakerList!!.size == 4) break
                     }
@@ -377,13 +386,13 @@ class StageFragment() : Fragment() {
             if (hlsEnabled) showViewerCount()
         }
 
-        override fun onParticipantModeChanged(data: JSONObject) {
+        override fun onParticipantModeChanged(participantId: String, mode: live.videosdk.rtc.android.lib.Mode) {
             try {
-                if (meeting!!.localParticipant.id != data.getString("peerId")) {
-                    val participant = meeting!!.participants[data.getString("peerId")]
-                    if ((data.getString("mode") == "CONFERENCE")) {
-                        if ((participant!!.mode == "CONFERENCE") && speakerList!!.size < 4) {
-                            participant.pin("SHARE_AND_CAM")
+                if (meeting!!.localParticipant.id != participantId) {
+                    val participant = meeting!!.participants[participantId]
+                    if ((mode == live.videosdk.rtc.android.lib.Mode.SEND_AND_RECV)) {
+                        if ((participant!!.mode == live.videosdk.rtc.android.lib.Mode.SEND_AND_RECV) && speakerList!!.size < 4) {
+                            sdkScope.launch { participant.pin(live.videosdk.rtc.android.PinType.SHARE_AND_CAM) }
                             speakerList!!.add(participant)
                             if (screenshareEnabled) {
                                 val participants: MutableList<Participant?> = ArrayList()
@@ -397,18 +406,18 @@ class StageFragment() : Fragment() {
                                 updateGridLayout(false)
                             }
                         } else {
-                            for (entry: Map.Entry<String?, Stream> in participant.streams.entries) {
+                            for (entry: Map.Entry<String?, RTCStream> in participant.streams.entries) {
                                 val stream = entry.value
-                                stream.pause()
+                                sdkScope.launch { runCatching { stream.pause() } }
                             }
                         }
                     } else {
                         if (speakerList!!.contains(participant)) {
-                            participant!!.unpin("SHARE_AND_CAM")
+                            sdkScope.launch { participant!!.unpin(live.videosdk.rtc.android.PinType.SHARE_AND_CAM) }
                             val participants = meeting!!.participants
                             val speakers: MutableMap<String, Participant> = HashMap()
                             for (entry: Map.Entry<String, Participant> in participants.entries) {
-                                if ((entry.value.mode == "CONFERENCE")) {
+                                if ((entry.value.mode == live.videosdk.rtc.android.lib.Mode.SEND_AND_RECV)) {
                                     speakers[entry.key] = entry.value
                                 }
                             }
@@ -416,11 +425,11 @@ class StageFragment() : Fragment() {
                             participantList.add(meeting!!.localParticipant)
                             if (screenshareEnabled) {
                                 for (entry: Map.Entry<String, Participant> in speakers.entries) {
-                                    if ((entry.value.mode == "CONFERENCE")) {
+                                    if ((entry.value.mode == live.videosdk.rtc.android.lib.Mode.SEND_AND_RECV)) {
                                         participantList.add(entry.value)
-                                        for (entry1: Map.Entry<String?, Stream> in entry.value.streams.entries) {
+                                        for (entry1: Map.Entry<String?, RTCStream> in entry.value.streams.entries) {
                                             val stream = entry1.value
-                                            stream.resume()
+                                            sdkScope.launch { runCatching { stream.resume() } }
                                         }
                                         if (participantList.size == 2) break
                                     }
@@ -428,11 +437,11 @@ class StageFragment() : Fragment() {
                                 showInGUI(participantList)
                             } else {
                                 for (entry: Map.Entry<String, Participant> in speakers.entries) {
-                                    if ((entry.value.mode == "CONFERENCE")) {
+                                    if ((entry.value.mode == live.videosdk.rtc.android.lib.Mode.SEND_AND_RECV)) {
                                         participantList.add(entry.value)
-                                        for (entry1: Map.Entry<String?, Stream> in entry.value.streams.entries) {
+                                        for (entry1: Map.Entry<String?, RTCStream> in entry.value.streams.entries) {
                                             val stream = entry1.value
-                                            stream.resume()
+                                            sdkScope.launch { runCatching { stream.resume() } }
                                         }
                                         if (participantList.size == 4) break
                                     }
@@ -442,7 +451,7 @@ class StageFragment() : Fragment() {
                             speakerList = ArrayList()
                             speakerList!!.add(meeting!!.localParticipant)
                             for (entry: Map.Entry<String, Participant> in speakers.entries) {
-                                if ((entry.value.mode == "CONFERENCE")) {
+                                if ((entry.value.mode == live.videosdk.rtc.android.lib.Mode.SEND_AND_RECV)) {
                                     speakerList!!.add(entry.value)
                                     if (speakerList!!.size == 4) break
                                 }
@@ -457,17 +466,17 @@ class StageFragment() : Fragment() {
             }
         }
 
-        override fun onRecordingStateChanged(recordingState: String) {
-            if ((recordingState == "RECORDING_STARTING")) {
+        override fun onRecordingStateChanged(recordingState: live.videosdk.rtc.android.lib.RecordingState) {
+            if ((recordingState == live.videosdk.rtc.android.lib.RecordingState.RECORDING_STARTING)) {
                 Toast.makeText(mContext, "Recording is starting", Toast.LENGTH_SHORT).show()
             }
-            if ((recordingState == "RECORDING_STARTED")) {
+            if ((recordingState == live.videosdk.rtc.android.lib.RecordingState.RECORDING_STARTED)) {
                 Toast.makeText(mContext, "Recording started", Toast.LENGTH_SHORT).show()
                 recordingEnabled = true
                 toggleRecordingIcon()
                 recordingIndicator!!.visibility = View.VISIBLE
             }
-            if ((recordingState == "RECORDING_STOPPED")) {
+            if ((recordingState == live.videosdk.rtc.android.lib.RecordingState.RECORDING_STOPPED)) {
                 Toast.makeText(mContext, "Recording stopped", Toast.LENGTH_SHORT).show()
                 recordingEnabled = false
                 toggleRecordingIcon()
@@ -476,20 +485,20 @@ class StageFragment() : Fragment() {
         }
 
         @RequiresApi(api = Build.VERSION_CODES.P)
-        override fun onHlsStateChanged(HlsState: JSONObject) {
-            if (HlsState.has("status")) {
+        override fun onHlsStateChanged(HlsState: live.videosdk.rtc.android.lib.HLSState, hlsUrl: live.videosdk.rtc.android.model.HLSUrl?) {
+            if (true) {
                 try {
-                    if ((HlsState.getString("status") == "HLS_STARTING")) {
+                    if ((HlsState == live.videosdk.rtc.android.lib.HLSState.HLS_STARTING)) {
                         Toast.makeText(mContext, "HLS is starting", Toast.LENGTH_SHORT).show()
                     }
-                    if ((HlsState.getString("status") == "HLS_STARTED")) {
+                    if ((HlsState == live.videosdk.rtc.android.lib.HLSState.HLS_STARTED)) {
                         Toast.makeText(mContext, "HLS started", Toast.LENGTH_SHORT).show()
                         hlsEnabled = true
                         btnHls!!.text = "Stop Live"
                         viewerCount!!.visibility = View.VISIBLE
                         showViewerCount()
                     }
-                    if ((HlsState.getString("status") == "HLS_STOPPING")) {
+                    if ((HlsState == live.videosdk.rtc.android.lib.HLSState.HLS_STOPPING)) {
                         val snackbar = Snackbar.make(
                             (stageLayout)!!, "HLS will be stopped in few moments",
                             Snackbar.LENGTH_SHORT
@@ -502,7 +511,7 @@ class StageFragment() : Fragment() {
                         snackbar.view.setOnClickListener { snackbar.dismiss() }
                         snackbar.show()
                     }
-                    if ((HlsState.getString("status") == "HLS_STOPPED")) {
+                    if ((HlsState == live.videosdk.rtc.android.lib.HLSState.HLS_STOPPED)) {
                         hlsEnabled = false
                         btnHls!!.text = "Go live"
                         viewerCount!!.visibility = View.GONE
@@ -560,9 +569,9 @@ class StageFragment() : Fragment() {
                         participantCard.foreground = mContext!!.getDrawable(R.drawable.layout_bg)
                     } else {
                         val activeSpeaker = meeting!!.participants[participantId]
-                        for (entry: Map.Entry<String?, Stream> in activeSpeaker!!.streams.entries) {
+                        for (entry: Map.Entry<String?, RTCStream> in activeSpeaker!!.streams.entries) {
                             val stream = entry.value
-                            stream.resume()
+                            sdkScope.launch { runCatching { stream.resume() } }
                         }
                         val participants: MutableList<Participant?> = ArrayList()
                         participants.add(meeting!!.localParticipant)
@@ -575,9 +584,9 @@ class StageFragment() : Fragment() {
                                 participants.add(speakerList!![i])
                             }
                             showInGUI(participants)
-                            for (entry: Map.Entry<String?, Stream> in speakerList!![speakerList!!.size - 1]!!.streams.entries) {
+                            for (entry: Map.Entry<String?, RTCStream> in speakerList!![speakerList!!.size - 1]!!.streams.entries) {
                                 val stream = entry.value
-                                stream.pause()
+                                sdkScope.launch { runCatching { stream.pause() } }
                             }
                             speakerList = participants
                             updateGridLayout(false)
@@ -600,8 +609,8 @@ class StageFragment() : Fragment() {
     }
 
     private fun showParticipants(participant: Participant) {
-        if ((participant.mode == "CONFERENCE") && speakerList!!.size < 4) {
-            participant.pin("SHARE_AND_CAM")
+        if ((participant.mode == live.videosdk.rtc.android.lib.Mode.SEND_AND_RECV) && speakerList!!.size < 4) {
+            sdkScope.launch { participant.pin(live.videosdk.rtc.android.PinType.SHARE_AND_CAM) }
             speakerList!!.add(participant)
             if (screenshareEnabled) {
                 val participants: MutableList<Participant?> = ArrayList()
@@ -615,9 +624,9 @@ class StageFragment() : Fragment() {
                 updateGridLayout(false)
             }
         } else {
-            for (entry: Map.Entry<String, Stream> in participant.streams.entries) {
+            for (entry: Map.Entry<String, RTCStream> in participant.streams.entries) {
                 val stream = entry.value
-                stream.pause()
+                sdkScope.launch { runCatching { stream.pause() } }
             }
         }
         if (hlsEnabled) showViewerCount()
@@ -627,9 +636,9 @@ class StageFragment() : Fragment() {
         if (participant == null) return
 
         // find share stream in participant
-        var shareStream: Stream? = null
-        for (stream: Stream in participant.streams.values) {
-            if ((stream.kind == "share")) {
+        var shareStream: RTCStream? = null
+        for (stream: RTCStream in participant.streams.values) {
+            if ((stream.kind == MediaType.SHARE)) {
                 shareStream = stream
                 break
             }
@@ -656,7 +665,7 @@ class StageFragment() : Fragment() {
             for (entry: Map.Entry<String, View> in speakerView!!.entries) {
                 val key = entry.key
                 val participant = meeting!!.participants[key]
-                participant?.removeAllListeners()
+                participant?.removeAllEventListeners()
                 val participantVideoView = speakerView!![key]!!
                     .findViewById<VideoView>(R.id.speakerVideoView)
                 participantVideoView.releaseSurfaceViewRenderer()
@@ -682,9 +691,9 @@ class StageFragment() : Fragment() {
                     tvName.text = participant.displayName
                 }
                 txtParticipantName.text = participant.displayName.substring(0, 1)
-                for (entry: Map.Entry<String, Stream> in participant.streams.entries) {
+                for (entry: Map.Entry<String, RTCStream> in participant.streams.entries) {
                     val stream = entry.value
-                    if (stream.kind.equals("video", ignoreCase = true)) {
+                    if (stream.kind == MediaType.VIDEO) {
                         participantVideoView.visibility = View.VISIBLE
                         val videoTrack = stream.track as VideoTrack
                         participantVideoView.addTrack(videoTrack)
@@ -693,7 +702,7 @@ class StageFragment() : Fragment() {
                             toggleWebcamIcon()
                         }
                         break
-                    } else if (stream.kind.equals("audio", ignoreCase = true)) {
+                    } else if (stream.kind == MediaType.AUDIO) {
                         ivMicStatus.setImageResource(R.drawable.ic_audio_on)
                         if ((participant.id == meeting!!.localParticipant.id)) {
                             micEnabled = true
@@ -702,8 +711,8 @@ class StageFragment() : Fragment() {
                     }
                 }
                 participant.addEventListener(object : ParticipantEventListener() {
-                    override fun onStreamEnabled(stream: Stream) {
-                        if (stream.kind.equals("video", ignoreCase = true)) {
+                    override fun onStreamEnabled(stream: RTCStream) {
+                        if (stream.kind == MediaType.VIDEO) {
                             participantVideoView.visibility = View.VISIBLE
                             val videoTrack = stream.track as VideoTrack
                             participantVideoView.addTrack(videoTrack)
@@ -711,7 +720,7 @@ class StageFragment() : Fragment() {
                                 webcamEnabled = true
                                 toggleWebcamIcon()
                             }
-                        } else if (stream.kind.equals("audio", ignoreCase = true)) {
+                        } else if (stream.kind == MediaType.AUDIO) {
                             ivMicStatus.setImageResource(R.drawable.ic_audio_on)
                             if ((participant.id == meeting!!.localParticipant.id)) {
                                 micEnabled = true
@@ -720,8 +729,8 @@ class StageFragment() : Fragment() {
                         }
                     }
 
-                    override fun onStreamDisabled(stream: Stream) {
-                        if (stream.kind.equals("video", ignoreCase = true)) {
+                    override fun onStreamDisabled(stream: RTCStream) {
+                        if (stream.kind == MediaType.VIDEO) {
                             val track: VideoTrack? = stream.track as VideoTrack
                             if (track != null) participantVideoView.removeTrack()
                             participantVideoView.visibility = View.GONE
@@ -729,7 +738,7 @@ class StageFragment() : Fragment() {
                                 webcamEnabled = false
                                 toggleWebcamIcon()
                             }
-                        } else if (stream.kind.equals("audio", ignoreCase = true)) {
+                        } else if (stream.kind == MediaType.AUDIO) {
                             ivMicStatus.setImageResource(R.drawable.ic_audio_off)
                             if ((participant.id == meeting!!.localParticipant.id)) {
                                 micEnabled = false
@@ -831,37 +840,27 @@ class StageFragment() : Fragment() {
             ).show()
             return
         }
-        meeting!!.enableScreenShare(data, true)
+        sdkScope.launch { meeting!!.enableScreenShare(data!!, true) }
     }
 
     private fun setActionListeners() {
         btnMic!!.setOnClickListener { v: View? ->
             if (micEnabled) {
-                meeting!!.muteMic()
+                sdkScope.launch { meeting!!.muteMic() }
             } else {
-                val audioCustomTrack: CustomStreamTrack =
-                    VideoSDK.createAudioTrack("high_quality", mContext)
-                meeting!!.unmuteMic(audioCustomTrack)
+                sdkScope.launch { meeting!!.unmuteMic() }
             }
         }
         btnWebcam!!.setOnClickListener { v: View? ->
             if (webcamEnabled) {
-                meeting!!.disableWebcam()
+                sdkScope.launch { meeting!!.disableCam() }
             } else {
-                val videoCustomTrack: CustomStreamTrack = VideoSDK.createCameraVideoTrack(
-                    "h720p_w960p",
-                    facingMode,
-                    CustomStreamTrack.VideoMode.DETAIL,
-                    true,
-                    mContext,
-                    VideoSDK.getSelectedVideoDevice()
-                )
-                meeting!!.enableWebcam(videoCustomTrack)
+                sdkScope.launch { meeting!!.enableCam() }
             }
         }
         btnRecording!!.setOnClickListener { v: View? ->
             if (recordingEnabled) stopRecordingConfirmDialog() else {
-                meeting!!.startRecording(null, null, null, null)
+                sdkScope.launch { meeting!!.startRecording() }
             }
         }
         btnLeave!!.setOnClickListener { v: View? -> (mActivity as MainActivity?)!!.showLeaveDialog() }
@@ -869,22 +868,23 @@ class StageFragment() : Fragment() {
             if (!screenshareEnabled) {
                 askPermissionForScreenShare()
             } else {
-                meeting!!.disableScreenShare()
+                sdkScope.launch { meeting!!.disableScreenShare() }
             }
         }
         btnHls!!.setOnClickListener {
             if (!hlsEnabled) {
-                val config = JSONObject()
-                val layout = JSONObject()
-                JsonUtils.jsonPut(layout, "type", "SPOTLIGHT")
-                JsonUtils.jsonPut(layout, "priority", "PIN")
-                JsonUtils.jsonPut(layout, "gridSize", 12)
-                JsonUtils.jsonPut(config, "layout", layout)
-                JsonUtils.jsonPut(config, "orientation", "portrait")
-                JsonUtils.jsonPut(config, "theme", "DARK")
-                meeting!!.startHls(config, null)
+                val config = live.videosdk.rtc.android.model.HLSConfig(
+                    layout = live.videosdk.rtc.android.model.ConfigLayout(
+                        type = live.videosdk.rtc.android.model.ConfigLayoutGrid.SPOTLIGHT,
+                        priority = live.videosdk.rtc.android.model.ConfigLayoutPriority.PIN,
+                        gridSize = 12
+                    ),
+                    theme = live.videosdk.rtc.android.model.ConfigTheme.DARK,
+                    orientation = live.videosdk.rtc.android.model.ConfigOrientation.PORTRAIT
+                )
+                sdkScope.launch { meeting!!.startHLS(config) }
             } else {
-                meeting!!.stopHls()
+                sdkScope.launch { meeting!!.stopHLS() }
             }
         }
         btnSetting!!.setOnClickListener { showSettings() }
@@ -958,7 +958,7 @@ class StageFragment() : Fragment() {
         val positiveButton = dialogView.findViewById<Button>(R.id.positiveBtn)
         positiveButton.text = "Yes"
         positiveButton.setOnClickListener { v: View? ->
-            meeting!!.stopRecording()
+            sdkScope.launch { meeting!!.stopRecording() }
             recordingEnabled = !recordingEnabled
             alertDialog.dismiss()
         }
@@ -973,7 +973,7 @@ class StageFragment() : Fragment() {
         val participants = meeting!!.participants
         for (entry: Map.Entry<String, Participant> in participants.entries) {
             val participant = entry.value
-            if ((participant.mode == "VIEWER")) {
+            if ((participant.mode == live.videosdk.rtc.android.lib.Mode.RECV_ONLY)) {
                 viewerCount++
             }
         }
@@ -1003,19 +1003,9 @@ class StageFragment() : Fragment() {
                 null
             )
         )
-        val mics = meeting!!.mics
+        val mics = VideoSDK.getMics()
         val audioDeviceList = ArrayList<String?>()
-        // Prepare list
-        var item: String
-        for (i in mics.indices) {
-            item = mics.toTypedArray()[i].toString()
-            var mic =
-                item.substring(0, 1).uppercase(Locale.getDefault()) + item.substring(1).lowercase(
-                    Locale.getDefault()
-                )
-            mic = mic.replace("_", " ")
-            audioDeviceList.add(mic)
-        }
+        for (micInfo in mics) audioDeviceList.add(micInfo.label)
         val micArrayAdapter: ArrayAdapter<*> =
             ArrayAdapter<Any?>((mContext)!!, R.layout.custom_drop_down_item,
                 audioDeviceList as List<Any?>
@@ -1023,17 +1013,8 @@ class StageFragment() : Fragment() {
         micDevice.setAdapter(micArrayAdapter)
         micDevice.onItemClickListener =
             OnItemClickListener { adapterView: AdapterView<*>?, view: View?, i: Int, l: Long ->
-                var audioDevice: AudioDevice? = null
-                when (audioDeviceList.get(i)) {
-                    "Bluetooth" -> audioDevice = AudioDevice.BLUETOOTH
-                    "Wired headset" -> audioDevice = AudioDevice.WIRED_HEADSET
-                    "Speaker phone" -> audioDevice = AudioDevice.SPEAKER_PHONE
-                    "Earpiece" -> audioDevice = AudioDevice.EARPIECE
-                }
-                meeting!!.changeMic(
-                    audioDevice,
-                    VideoSDK.createAudioTrack("high_quality", mContext)
-                )
+                val micDeviceId = mics[i].deviceId
+                sdkScope.launch { meeting!!.changeMic(micDeviceId) }
             }
 
 
@@ -1060,13 +1041,13 @@ class StageFragment() : Fragment() {
             OnItemClickListener { adapterView: AdapterView<*>?, view: View?, i: Int, l: Long ->
                 if (i == 0) {
                     if ((facingMode == "back")) {
-                        meeting!!.changeWebcam()
+                        sdkScope.launch { meeting!!.changeCam() }
                         facingMode = facingModes.get(i)!!.lowercase(Locale.getDefault())
                     }
                 }
                 if (i == 1) {
                     if ((facingMode == "front")) {
-                        meeting!!.changeWebcam()
+                        sdkScope.launch { meeting!!.changeCam() }
                         facingMode = facingModes.get(i)!!.lowercase(Locale.getDefault())
                     }
                 }
@@ -1074,8 +1055,8 @@ class StageFragment() : Fragment() {
     }
 
     private fun setAudioDeviceListeners() {
-        meeting!!.setAudioDeviceChangeListener { selectedAudioDevice: AudioDevice, availableAudioDevices: Set<AudioDevice?>? ->
-            selectedAudioDeviceName = selectedAudioDevice.toString()
+        meeting!!.setAudioDeviceChangeListener { selectedAudioDevice, availableAudioDevices ->
+            selectedAudioDeviceName = selectedAudioDevice?.label
         }
     }
 
@@ -1116,7 +1097,7 @@ class StageFragment() : Fragment() {
     }
 
     companion object {
-        private var meeting: Meeting? = null
+        private var meeting: Room? = null
         private val CAPTURE_PERMISSION_REQUEST_CODE = 1
         private var mActivity: Activity? = null
         private var mContext: Context? = null

@@ -12,13 +12,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import live.videosdk.android.hlsdemo.R
 import live.videosdk.android.hlsdemo.common.meeting.activity.MainActivity
-import live.videosdk.rtc.android.Meeting
+import live.videosdk.rtc.android.Room
 import live.videosdk.rtc.android.Participant
 
 class ParticipantListFragment : Fragment() {
     private var mContext: Context? = null
     private var mActivity: Activity? = null
-    private var meeting: Meeting? = null
+    private var meeting: Room? = null
     private var participantsListView: RecyclerView? = null
 
     override fun onAttach(context: Context) {
@@ -55,7 +55,7 @@ class ParticipantListFragment : Fragment() {
                 val participants: Iterator<Participant> = meeting!!.participants.values.iterator()
                 for (i in 0 until meeting!!.participants.size) {
                     val participant = participants.next()
-                    if (participant.mode == "CONFERENCE") {
+                    if (participant.mode == live.videosdk.rtc.android.lib.Mode.SEND_AND_RECV) {
                         participantList.add(participant)
                     }
                 }
@@ -63,7 +63,7 @@ class ParticipantListFragment : Fragment() {
                     meeting!!.participants.values.iterator()
                 for (i in 0 until meeting!!.participants.size) {
                     val participant = participantIterator.next()
-                    if (participant.mode == "VIEWER") {
+                    if (participant.mode == live.videosdk.rtc.android.lib.Mode.RECV_ONLY) {
                         participantList.add(participant)
                     }
                 }
